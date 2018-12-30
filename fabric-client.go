@@ -80,10 +80,9 @@ func NewFabricClient(configPath string, ordererHost string) (*FabricClient, erro
 	cp := config.FromFile(configPath)
 	FabricClient.SDK, err = fabsdk.New(cp)
 	if err != nil {
-		err = fmt.Errorf("Failed to read fabric SDK config file: %s", err)
-		return nil, err
+		return nil, fmt.Errorf("Failed to read fabric SDK config file: %s", err)
 	}
-	logger.Debug("SDK created")
+	logger.Info("SDK created")
 	return &FabricClient, nil
 }
 
