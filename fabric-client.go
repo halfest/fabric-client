@@ -1,4 +1,4 @@
-package fabricclient
+package fabclient
 
 import (
 	"fmt"
