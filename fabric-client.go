@@ -105,6 +105,7 @@ func (c *ConfiguratorClient) InstallChaincodeFromStructure(chaincodeParameters *
 }
 
 func (c *ConfiguratorClient) InstallChaincode(chaincodeID string, chaincodePath string, version string) error {
+	logger.Debugf("Installing chaincode %s version %s", chaincodeID, version)
 	platform := platform.Platform{}
 	payload, err := platform.GetDeploymentPayload(chaincodePath)
 	if err != nil {
@@ -117,7 +118,7 @@ func (c *ConfiguratorClient) InstallChaincode(chaincodeID string, chaincodePath 
 	if err != nil {
 		return fmt.Errorf("Failed to install chaincode with chaincode id %s, chaincode path and version %s.\n Error: %v", chaincodeID, chaincodePath, version, err)
 	}
-	logger.Infof("Chaincode %s version %s installed", chaincodeID, version)
+	logger.Debugf("Chaincode %s version %s installed", chaincodeID, version)
 	return nil
 }
 
@@ -126,6 +127,7 @@ func (c *ConfiguratorClient) InstanciateChaincodeFromStructure(channelID string,
 }
 
 func (c *ConfiguratorClient) InstanciateChaincode(channelID string, chaincodeID string, chaincodePath string, version string, args [][]byte, policy string) error {
+	logger.Debugf("Instantiating chaincode %s version %s", chaincodeID, version)
 	ccPolicy, err := cauthdsl.FromString(policy)
 	if err != nil {
 		return fmt.Errorf("Failed to construct signature policy from string %s.\n Error: %v", policy, err)
@@ -136,14 +138,14 @@ func (c *ConfiguratorClient) InstanciateChaincode(channelID string, chaincodeID 
 	if err != nil || resp.TransactionID == "" {
 		return fmt.Errorf("Failed to instantiate the chaincode with channelID: %s, chaincodeID: %s, chaincodePath: %s, version: %s, args: %v and signature policy: %s.\n Error: %v", channelID, chaincodeID, chaincodePath, version, args, policy, err)
 	}
-	logger.Infof("Chaincode %s version %s instantiated", chaincodeID, version)
+	logger.Debugf("Chaincode %s version %s instantiated", chaincodeID, version)
 	return nil
 }
 
 //getResourceManClient
 //returns a resource management client instance.
 func (c *ConfiguratorClient) initResourceMgmtClient(sdk *fabsdk.FabricSDK) error {
-	// var err error
+	logger.Info("Creating ressource management client")
 	// The resource management client is responsible for managing channels (create/update channel)
 	resourceManagerClientContext := c.FabricClient.SDK.Context(fabsdk.WithUser(c.Name), fabsdk.WithOrg(c.Organization))
 	resMgmtClient, err := resmgmt.New(resourceManagerClientContext)
@@ -160,6 +162,7 @@ func (c *ConfiguratorClient) CreateChannelWithStructure(channelParameters *Chann
 }
 
 func (c *ConfiguratorClient) CreateChannel(channelID string, channelConfigPath string) error {
+	logger.Debugf("Creating channel %s", channelID)
 	mspClient, err := mspclient.New(c.FabricClient.SDK.Context(), mspclient.WithOrg(c.Organization))
 	if err != nil {
 		return fmt.Errorf("Failed to create msp client with organisation %s.\n Error: %s", c.Organization, err)
@@ -173,7 +176,7 @@ func (c *ConfiguratorClient) CreateChannel(channelID string, channelConfigPath s
 	if err != nil || txID.TransactionID == "" {
 		return fmt.Errorf("Failed to save channel %s.\n Error: %s", channelID, err)
 	}
-	logger.Infof("Channel %s created", channelID)
+	logger.Debugf("Channel %s created", channelID)
 	return nil
 }
 
@@ -182,10 +185,11 @@ func (c *ConfiguratorClient) JoinChannelWithStructure(channelParameters *Channel
 }
 
 func (c *ConfiguratorClient) JoinChannel(channelID string) error {
+	logger.Debugf("Joining channel %s", channelID)
 	if err := c.resMgmtClient.JoinChannel(channelID, resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithOrdererEndpoint(c.FabricClient.OrdererHost)); err != nil {
 		return fmt.Errorf("Failed to join channel %s.\n Error: %v", channelID, err)
 	}
-	logger.Infof("Channel %s joined", channelID)
+	logger.Debugf("Channel %s joined", channelID)
 	return nil
 }
 
@@ -216,7 +220,6 @@ func (c *ConfiguratorClient) CreateAndJoinChannel(channelID string, channelConfi
 }
 
 func (c *FabricClient) getUserIdentity(name string, organization string) (msp.SigningIdentity, error) {
-
 	mspClient, err := mspclient.New(c.SDK.Context(), mspclient.WithOrg(organization))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create msp client with organisation %s.\n Error: %v", name, err)
@@ -229,6 +232,7 @@ func (c *FabricClient) getUserIdentity(name string, organization string) (msp.Si
 }
 
 func (c *FabricClient) CreateUserClient(name string, organization string, channelID string) (*UserClient, error) {
+	logger.Debugf("Creating client for user: %s, organization: %s and channelID: %s", name, organization, channelID)
 	var err error
 	userClient := &UserClient{
 		Name:         name,
@@ -247,11 +251,12 @@ func (c *FabricClient) CreateUserClient(name string, organization string, channe
 	if err != nil {
 		return nil, err
 	}
-	logger.Infof("Created client for user %s", userClient.Name)
+	logger.Debugf("Client for user: %s, organization: %s and channelID: %s created", userClient.Name, organization, channelID)
 	return userClient, nil
 }
 
 func (c *UserClient) initClientInstance(sdk *fabsdk.FabricSDK) error {
+	logger.Debugf("Initializing client instance in channel %s with client name %s", c.ChannelID, c.Name)
 	// Channel client is used to query and execute transactions
 	channelProvider := sdk.ChannelContext(c.ChannelID, fabsdk.WithUser(c.Name), fabsdk.WithOrg(c.Organization))
 	channelClient, err := channel.New(channelProvider)
@@ -259,26 +264,28 @@ func (c *UserClient) initClientInstance(sdk *fabsdk.FabricSDK) error {
 		return fmt.Errorf("Failed to create new channel client.\n Error: %v", err)
 	}
 	c.ChannelClient = channelClient
-	logger.Infof("In channel %s client %s created", c.ChannelID, c.Name)
+	logger.Debugf("Client instance in channel %s with client name %s initialized", c.ChannelID, c.Name)
 	return nil
 }
 
 func (c *UserClient) Invoke(chaincodeID string, functionName string, args [][]byte) ([]byte, error) {
+	logger.Debugf("Invoking chaincode with id: %s, functionName: % and, args: %s\n", chaincodeID, functionName, args)
 	resp, err := c.ChannelClient.Execute(channel.Request{ChaincodeID: chaincodeID, Fcn: functionName, Args: args},
 		channel.WithRetry(retry.DefaultChannelOpts))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to invoke chaincode %s with funactions %s and arguments %v.\n Error: %v", chaincodeID, functionName, args, err)
 	}
-	logger.Infof("Response on invoke chaincode: %s\n", resp.Payload)
+	logger.Debugf("Response on invoke chaincode: %s\n", resp.Payload)
 	return resp.Payload, nil
 }
 
 func (c *UserClient) Query(chaincodeID string, functionName string, args [][]byte) ([]byte, error) {
+	logger.Debugf("Quering chaincode with id: %s, functionName: % and, args: %s\n", chaincodeID, functionName, args)
 	resp, err := c.ChannelClient.Query(channel.Request{ChaincodeID: chaincodeID, Fcn: functionName, Args: args},
 		channel.WithRetry(retry.DefaultChannelOpts))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to query chaincode %s with funactions %s and arguments %v.\n Error: %v", chaincodeID, functionName, args, err)
 	}
-	logger.Infof("Response on query chaincode: %s\n", resp.Payload)
+	logger.Debugf("Response on query chaincode: %s\n", resp.Payload)
 	return resp.Payload, nil
 }
