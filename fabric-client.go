@@ -2,13 +2,13 @@ package fabclient
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	mspclient "github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/resmgmt"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/errors/retry"
+	"github.com/hyperledger/fabric-sdk-go/pkg/common/logging"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/core/config"
 	"github.com/hyperledger/fabric-sdk-go/pkg/fab/resource"
@@ -17,6 +17,8 @@ import (
 	pb "github.com/hyperledger/fabric-sdk-go/third_party/github.com/hyperledger/fabric/protos/peer"
 	platform "github.com/hyperledger/fabric/core/chaincode/platforms/golang"
 )
+
+var logger = logging.NewLogger("fabclient")
 
 type FabricClient struct {
 	SDK         *fabsdk.FabricSDK
@@ -81,7 +83,7 @@ func NewFabricClient(configPath string, ordererHost string) (*FabricClient, erro
 		err = fmt.Errorf("Failed to read fabric SDK config file: %s", err)
 		return nil, err
 	}
-	// log.Println("SDK created")
+	logger.Debug("SDK created")
 	return &FabricClient, nil
 }
 
@@ -116,7 +118,7 @@ func (c *ConfiguratorClient) InstallChaincode(chaincodeID string, chaincodePath 
 	if err != nil {
 		return fmt.Errorf("Failed to install chaincode with chaincode id %s, chaincode path and version %s.\n Error: %v", chaincodeID, chaincodePath, version, err)
 	}
-	log.Printf("Chaincode %s version %s installed", chaincodeID, version)
+	logger.Infof("Chaincode %s version %s installed", chaincodeID, version)
 	return nil
 }
 
@@ -135,7 +137,7 @@ func (c *ConfiguratorClient) InstanciateChaincode(channelID string, chaincodeID 
 	if err != nil || resp.TransactionID == "" {
 		return fmt.Errorf("Failed to instantiate the chaincode with channelID: %s, chaincodeID: %s, chaincodePath: %s, version: %s, args: %v and signature policy: %s.\n Error: %v", channelID, chaincodeID, chaincodePath, version, args, policy, err)
 	}
-	log.Printf("Chaincode %s version %s instantiated", chaincodeID, version)
+	logger.Infof("Chaincode %s version %s instantiated", chaincodeID, version)
 	return nil
 }
 
@@ -150,7 +152,7 @@ func (c *ConfiguratorClient) initResourceMgmtClient(sdk *fabsdk.FabricSDK) error
 		return fmt.Errorf("Failed to create channel management client with user %s and organisation %s.\n Error: %v", c.Name, c.Organization, err)
 	}
 	c.resMgmtClient = resMgmtClient
-	// log.Println("Ressource management client created")
+	logger.Info("Ressource management client created")
 	return nil
 }
 
@@ -172,7 +174,7 @@ func (c *ConfiguratorClient) CreateChannel(channelID string, channelConfigPath s
 	if err != nil || txID.TransactionID == "" {
 		return fmt.Errorf("Failed to save channel %s.\n Error: %s", channelID, err)
 	}
-	// log.Println("Channel %s created", channelID)
+	logger.Infof("Channel %s created", channelID)
 	return nil
 }
 
@@ -182,10 +184,9 @@ func (c *ConfiguratorClient) JoinChannelWithStructure(channelParameters *Channel
 
 func (c *ConfiguratorClient) JoinChannel(channelID string) error {
 	if err := c.resMgmtClient.JoinChannel(channelID, resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithOrdererEndpoint(c.FabricClient.OrdererHost)); err != nil {
-		log.Println(err.Error())
 		return fmt.Errorf("Failed to join channel %s.\n Error: %v", channelID, err)
 	}
-	log.Printf("Channel %s joined", channelID)
+	logger.Infof("Channel %s joined", channelID)
 	return nil
 }
 
@@ -247,8 +248,7 @@ func (c *FabricClient) CreateUserClient(name string, organization string, channe
 	if err != nil {
 		return nil, err
 	}
-
-	log.Printf("Created client for user %s", userClient.Name)
+	logger.Infof("Created client for user %s", userClient.Name)
 	return userClient, nil
 }
 
@@ -260,7 +260,7 @@ func (c *UserClient) initClientInstance(sdk *fabsdk.FabricSDK) error {
 		return fmt.Errorf("Failed to create new channel client.\n Error: %v", err)
 	}
 	c.ChannelClient = channelClient
-	log.Printf("In channel %s client %s created", c.ChannelID, c.Name)
+	logger.Infof("In channel %s client %s created", c.ChannelID, c.Name)
 	return nil
 }
 
@@ -270,7 +270,7 @@ func (c *UserClient) Invoke(chaincodeID string, functionName string, args [][]by
 	if err != nil {
 		return nil, fmt.Errorf("Failed to invoke chaincode %s with funactions %s and arguments %v.\n Error: %v", chaincodeID, functionName, args, err)
 	}
-	log.Printf("Response on invoke chaincode: %s\n", string(resp.Payload))
+	logger.Infof("Response on invoke chaincode: %s\n", resp.Payload)
 	return resp.Payload, nil
 }
 
@@ -280,6 +280,6 @@ func (c *UserClient) Query(chaincodeID string, functionName string, args [][]byt
 	if err != nil {
 		return nil, fmt.Errorf("Failed to query chaincode %s with funactions %s and arguments %v.\n Error: %v", chaincodeID, functionName, args, err)
 	}
-	log.Printf("Response on query chaincode: %s\n", string(resp.Payload))
+	logger.Infof("Response on query chaincode: %s\n", resp.Payload)
 	return resp.Payload, nil
 }
