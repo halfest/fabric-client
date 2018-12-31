@@ -84,15 +84,15 @@ func (c *FabricClient) CreateConfigurationClient(name string, organization strin
 	return configurationClient, nil
 }
 
-func (c *FabricClient) MustCreateUserClient(name string, organization string, channelID string) *UserClient {
-	result, err := c.CreateUserClient(name, organization, channelID)
+func (c *FabricClient) MustCreateUserClient(channelID string, name string, organization string) *UserClient {
+	result, err := c.CreateUserClient(channelID, name, organization)
 	if err != nil {
 		panic(err)
 	}
 	return result
 }
 
-func (c *FabricClient) CreateUserClient(name string, organization string, channelID string) (*UserClient, error) {
+func (c *FabricClient) CreateUserClient(channelID string, name string, organization string) (*UserClient, error) {
 	var err error
 	userClient := &UserClient{
 		Name:         name,
@@ -100,8 +100,8 @@ func (c *FabricClient) CreateUserClient(name string, organization string, channe
 		ChannelID:    channelID,
 	}
 
-	clientContext := c.SDK.ChannelContext(userClient.ChannelID, fabsdk.WithUser(userClient.Name), fabsdk.WithOrg(userClient.Organization))
-	clientInstance, err := channel.New(clientContext)
+	channelProvider := c.SDK.ChannelContext(userClient.ChannelID, fabsdk.WithUser(userClient.Name), fabsdk.WithOrg(userClient.Organization))
+	clientInstance, err := channel.New(channelProvider)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create user client with channel id %s, user name %s and organization %s.\n Error: %v", userClient.ChannelID, userClient.Name, userClient.Organization, err)
 	}
@@ -111,8 +111,29 @@ func (c *FabricClient) CreateUserClient(name string, organization string, channe
 	if err != nil {
 		return nil, err
 	}
-	logger.Debugf("User client for user: %s, organization: %s and channelID: %s created", name, organization, channelID)
+	logger.Debugf("User client for channelID: %s, user: %s and organization: %screated", channelID, name, organization)
 	return userClient, nil
+}
+
+func (c *FabricClient) MustCreateChaincodeClient(channelID string, chaincodeID string, name string, organization string) *ChaincodeClient {
+	result, err := c.CreateChaincodeClient(channelID, chaincodeID, name, organization)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+
+func (c *FabricClient) CreateChaincodeClient(channelID string, chaincodeID string, name string, organization string) (*ChaincodeClient, error) {
+	var err error
+	chaincodeClient := &ChaincodeClient{
+		ChaincodeID: chaincodeID,
+	}
+	chaincodeClient.UserClient, err = c.CreateUserClient(channelID, name, organization)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create user client with channel id %s, user name %s and organization %s.\n Error: %v", channelID, name, organization, err)
+	}
+	logger.Debugf("Chaincode client for channelID: %s, chaincodeID: %s, user: %s and organization: %screated", channelID, chaincodeID, name, organization)
+	return chaincodeClient, nil
 }
 
 func (c *FabricClient) getUserIdentity(name string, organization string) (msp.SigningIdentity, error) {

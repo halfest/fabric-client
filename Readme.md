@@ -1,7 +1,10 @@
 # fabric-client
 It is wrapper on fabric-sdk-go with different API to interact with.
 
-It consists of 2 clients: configuration client used for creating, joining channels, installing, instantiating chaincodes and user client used for invoking and queryng transactions.
+It consists of 3 clients:
+1. Configuration client used for creating, joining channels, installing, instantiating chaincodes.
+2. User client used for invoking and querying transactions.
+3. Channel cleint. It is similar to user client bot for one chaincode only.
 
 ## Get
 ```go
@@ -20,6 +23,12 @@ fabricClient, err := fabclient.CreateFabricClient("config file for fabric-sdk-go
 
 #### Create configuration client
 ```go
+import (
+	fabclient "github.com/halfest/fabric-client"
+	"github.com/hyperledger/fabric-sdk-go/pkg/common/logging"
+)
+
+logging.SetLevel("fabclient", logging.DEBUG)
 configurationClient, err := fabricClient.CreateConfigurationClient("userName", "orgTitle")
 // Must version is also available
 ```
@@ -65,5 +74,25 @@ response, err = userClient.Invoke("chaincodeID", "chaincodeMethod", [][]byte{[]b
 #### Query transaction (transaction won't be recorded to blockchain)
 ```go
 response, err = userClient.Invoke("chaincodeID", "chaincodeMethod", [][]byte{[]byte("method"), []byte("args")})
+// Must version is also available
+```
+
+### Chaincode client
+
+#### Create user client
+```go
+chaincodeClient, err := fabricClient.CreateChaincodeClient("channelID", "chaincodeID", "userName", "orgTitle")
+// Must version is also available
+```
+
+#### Invoke transaction
+```go
+response, err = chaincodeClient.Invoke("chaincodeMethod", [][]byte{[]byte("method"), []byte("args")})
+// Must version is also available
+```
+
+#### Query transaction (transaction won't be recorded to blockchain)
+```go
+response, err = chaincodeClient.Invoke("chaincodeMethod", [][]byte{[]byte("method"), []byte("args")})
 // Must version is also available
 ```
