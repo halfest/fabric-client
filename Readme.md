@@ -4,7 +4,7 @@ It is wrapper on fabric-sdk-go with different API to interact with.
 It consists of 3 clients:
 1. Configuration client used for creating, joining channels, installing, instantiating chaincodes.
 2. User client used for invoking and querying transactions.
-3. Channel cleint. It is similar to user client bot for one chaincode only.
+3. Channel cleint. It is similar to user client but for one chaincode only.
 
 ## Get
 ```go
