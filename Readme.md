@@ -4,7 +4,7 @@ It is wrapper on fabric-sdk-go with different API to interact with.
 It consists of 3 clients:
 1. Configuration client used for creating, joining channels, installing, instantiating chaincodes.
 2. User client used for invoking and querying transactions.
-3. Channel cleint. It is similar to user client but for one chaincode only.
+3. Channel client. It is similar to user client but for one chaincode only.
 
 ## Get
 ```go
@@ -73,7 +73,7 @@ response, err = userClient.Invoke("chaincodeID", "chaincodeMethod", [][]byte{[]b
 
 #### Query transaction (transaction won't be recorded to blockchain)
 ```go
-response, err = userClient.Invoke("chaincodeID", "chaincodeMethod", [][]byte{[]byte("method"), []byte("args")})
+response, err = userClient.Query("chaincodeID", "chaincodeMethod", [][]byte{[]byte("method"), []byte("args")})
 // Must version is also available
 ```
 
@@ -93,6 +93,6 @@ response, err = chaincodeClient.Invoke("chaincodeMethod", [][]byte{[]byte("metho
 
 #### Query transaction (transaction won't be recorded to blockchain)
 ```go
-response, err = chaincodeClient.Invoke("chaincodeMethod", [][]byte{[]byte("method"), []byte("args")})
+response, err = chaincodeClient.Query("chaincodeMethod", [][]byte{[]byte("method"), []byte("args")})
 // Must version is also available
 ```
