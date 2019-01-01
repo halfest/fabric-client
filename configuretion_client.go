@@ -47,8 +47,8 @@ func (c *ConfigurationClient) MustInstallChaincode(chaincodeID string, chaincode
 
 func (c *ConfigurationClient) InstallChaincode(chaincodeID string, chaincodePath string, version string) error {
 	// logger.Debugf("Installing chaincode %s version %s", chaincodeID, version)
-	platform := platform.Platform{}
-	payload, err := platform.GetDeploymentPayload(chaincodePath)
+	goPlatform := platform.Platform{}
+	payload, err := goPlatform.GetDeploymentPayload(chaincodePath)
 	if err != nil {
 		return fmt.Errorf("Failed to create chaincode package with chaincode path %s.\n Error: %v", chaincodePath, err)
 	}

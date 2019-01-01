@@ -11,6 +11,14 @@ It consists of 3 clients:
 go get -u github.com/halfest/fabric-client
 ```
 
+## Features
+There is difference in packing chaincode during it's installation between fabric-sdk-go and fabric peer cli. Former does not pack dependencies alongside with chaincode, so function 
+```go
+// Generates a deployment payload for GOLANG as a series of src/$pkg entries in .tar.gz format
+func (goPlatform *Platform) GetDeploymentPayload(path string) ([]byte, error) {
+```
+from fabric peer cli was used.
+
 ## Usage
 
 ### Init fabric client
