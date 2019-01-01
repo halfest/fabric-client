@@ -38,14 +38,6 @@ func CreateChaincodeParameters(chaincodeID string, chaincodePath string, version
 	}
 }
 
-func MustCreateFabricClient(configPath string, ordererHost string) *FabricClient {
-	result, err := CreateFabricClient(configPath, ordererHost)
-	if err != nil {
-		panic(err)
-	}
-	return result
-}
-
 func CreateFabricClient(configPath string, ordererHost string) (*FabricClient, error) {
 	var err error
 	FabricClient := FabricClient{
@@ -61,14 +53,6 @@ func CreateFabricClient(configPath string, ordererHost string) (*FabricClient, e
 	return &FabricClient, nil
 }
 
-func (c *FabricClient) MustCreateConfigurationClient(name string, organization string) *ConfigurationClient {
-	result, err := c.CreateConfigurationClient(name, organization)
-	if err != nil {
-		panic(err)
-	}
-	return result
-}
-
 func (c *FabricClient) CreateConfigurationClient(name string, organization string) (*ConfigurationClient, error) {
 	var err error
 	configurationClient := &ConfigurationClient{
@@ -82,14 +66,6 @@ func (c *FabricClient) CreateConfigurationClient(name string, organization strin
 	}
 	logger.Debugf("Configuration client for user: %s and organization: %s created", name, organization)
 	return configurationClient, nil
-}
-
-func (c *FabricClient) MustCreateUserClient(channelID string, name string, organization string) *UserClient {
-	result, err := c.CreateUserClient(channelID, name, organization)
-	if err != nil {
-		panic(err)
-	}
-	return result
 }
 
 func (c *FabricClient) CreateUserClient(channelID string, name string, organization string) (*UserClient, error) {
@@ -113,14 +89,6 @@ func (c *FabricClient) CreateUserClient(channelID string, name string, organizat
 	}
 	logger.Debugf("User client for channelID: %s, user: %s and organization: %screated", channelID, name, organization)
 	return userClient, nil
-}
-
-func (c *FabricClient) MustCreateChaincodeClient(channelID string, chaincodeID string, name string, organization string) *ChaincodeClient {
-	result, err := c.CreateChaincodeClient(channelID, chaincodeID, name, organization)
-	if err != nil {
-		panic(err)
-	}
-	return result
 }
 
 func (c *FabricClient) CreateChaincodeClient(channelID string, chaincodeID string, name string, organization string) (*ChaincodeClient, error) {

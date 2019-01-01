@@ -16,14 +16,6 @@ type UserClient struct {
 	SigningIdentity msp.SigningIdentity
 }
 
-func (c *UserClient) MustInvoke(chaincodeID string, functionName string, args [][]byte) []byte {
-	result, err := c.Invoke(chaincodeID, functionName, args)
-	if err != nil {
-		panic(err)
-	}
-	return result
-}
-
 func (c *UserClient) Invoke(chaincodeID string, functionName string, args [][]byte) ([]byte, error) {
 	resp, err := c.ChannelClient.Execute(channel.Request{ChaincodeID: chaincodeID, Fcn: functionName, Args: args},
 		channel.WithRetry(retry.DefaultChannelOpts))
@@ -32,14 +24,6 @@ func (c *UserClient) Invoke(chaincodeID string, functionName string, args [][]by
 	}
 	logger.Debugf("Response on invoke chaincode: %s\n", resp.Payload)
 	return resp.Payload, nil
-}
-
-func (c *UserClient) MustQuery(chaincodeID string, functionName string, args [][]byte) []byte {
-	result, err := c.Query(chaincodeID, functionName, args)
-	if err != nil {
-		panic(err)
-	}
-	return result
 }
 
 func (c *UserClient) Query(chaincodeID string, functionName string, args [][]byte) ([]byte, error) {

@@ -38,13 +38,6 @@ func (c *ConfigurationClient) InstallChaincodeFromStructure(chaincodeParameters 
 	return c.InstallChaincode(chaincodeParameters.ChaincodeID, chaincodeParameters.ChaincodePath, chaincodeParameters.Version)
 }
 
-func (c *ConfigurationClient) MustInstallChaincode(chaincodeID string, chaincodePath string, version string) {
-	err := c.InstallChaincode(chaincodeID, chaincodePath, version)
-	if err != nil {
-		panic(err)
-	}
-}
-
 func (c *ConfigurationClient) InstallChaincode(chaincodeID string, chaincodePath string, version string) error {
 	// logger.Debugf("Installing chaincode %s version %s", chaincodeID, version)
 	goPlatform := platform.Platform{}
@@ -67,13 +60,6 @@ func (c *ConfigurationClient) InstanciateChaincodeFromStructure(channelID string
 	return c.InstanciateChaincode(channelID, chaincodeParameters.ChaincodeID, chaincodeParameters.ChaincodePath, chaincodeParameters.Version, chaincodeParameters.ArgsForInit, chaincodeParameters.Policy)
 }
 
-func (c *ConfigurationClient) MustInstanciateChaincode(channelID string, chaincodeID string, chaincodePath string, version string, args [][]byte, policy string) {
-	err := c.InstanciateChaincode(channelID, chaincodeID, chaincodePath, version, args, policy)
-	if err != nil {
-		panic(err)
-	}
-}
-
 func (c *ConfigurationClient) InstanciateChaincode(channelID string, chaincodeID string, chaincodePath string, version string, args [][]byte, policy string) error {
 	// logger.Debugf("Instantiating chaincode %s version %s", chaincodeID, version)
 	ccPolicy, err := cauthdsl.FromString(policy)
@@ -92,13 +78,6 @@ func (c *ConfigurationClient) InstanciateChaincode(channelID string, chaincodeID
 
 func (c *ConfigurationClient) CreateChannelFromStructure(channelParameters *ChannelParameters) error {
 	return c.CreateChannel(channelParameters.ChannelID, channelParameters.ChannelConfigPath)
-}
-
-func (c *ConfigurationClient) MustCreateChannel(channelID string, channelConfigPath string) {
-	err := c.CreateChannel(channelID, channelConfigPath)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func (c *ConfigurationClient) CreateChannel(channelID string, channelConfigPath string) error {
@@ -124,13 +103,6 @@ func (c *ConfigurationClient) JoinChannelFromStructure(channelParameters *Channe
 	return c.JoinChannel(channelParameters.ChannelID)
 }
 
-func (c *ConfigurationClient) MustJoinChannel(channelID string) {
-	err := c.JoinChannel(channelID)
-	if err != nil {
-		panic(err)
-	}
-}
-
 func (c *ConfigurationClient) JoinChannel(channelID string) error {
 	// logger.Debugf("Joining channel %s", channelID)
 	if err := c.resMgmtClient.JoinChannel(channelID, resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithOrdererEndpoint(c.FabricClient.OrdererHost)); err != nil {
@@ -151,13 +123,6 @@ func (c *ConfigurationClient) CreateAndJoinChannelFromStructure(channelParameter
 		return fmt.Errorf("Failed to join channel with structure %+v.\n Error: %v", channelParameters, err)
 	}
 	return nil
-}
-
-func (c *ConfigurationClient) MustCreateAndJoinChannel(channelID string, channelConfigPath string) {
-	err := c.CreateAndJoinChannel(channelID, channelConfigPath)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func (c *ConfigurationClient) CreateAndJoinChannel(channelID string, channelConfigPath string) error {

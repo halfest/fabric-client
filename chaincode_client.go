@@ -9,14 +9,6 @@ type ChaincodeClient struct {
 	UserClient  *UserClient
 }
 
-func (c *ChaincodeClient) MustInvoke(functionName string, args [][]byte) []byte {
-	result, err := c.Invoke(functionName, args)
-	if err != nil {
-		panic(err)
-	}
-	return result
-}
-
 func (c *ChaincodeClient) Invoke(functionName string, args [][]byte) ([]byte, error) {
 	resp, err := c.UserClient.Invoke(c.ChaincodeID, functionName, args)
 	if err != nil {
@@ -24,14 +16,6 @@ func (c *ChaincodeClient) Invoke(functionName string, args [][]byte) ([]byte, er
 	}
 	logger.Debugf("Response on invoke chaincode: %s\n", resp)
 	return resp, nil
-}
-
-func (c *ChaincodeClient) MustQuery(functionName string, args [][]byte) []byte {
-	result, err := c.Query(functionName, args)
-	if err != nil {
-		panic(err)
-	}
-	return result
 }
 
 func (c *ChaincodeClient) Query(functionName string, args [][]byte) ([]byte, error) {
