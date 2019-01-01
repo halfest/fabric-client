@@ -37,3 +37,8 @@ func (c *UserClient) Query(chaincodeID string, functionName string, args [][]byt
 	logger.Debugf("Response on query chaincode: %s\n", resp.Payload)
 	return resp.Payload, nil
 }
+
+// GetSigningIdentity return SigningIdentity of user
+func (c *UserClient) GetSigningIdentity() msp.SigningIdentity {
+	return c.signingIdentity
+}

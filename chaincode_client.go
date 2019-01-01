@@ -29,3 +29,8 @@ func (c *ChaincodeClient) Query(functionName string, args [][]byte) ([]byte, err
 	logger.Debugf("Response on query chaincode: %s\n", resp)
 	return resp, nil
 }
+
+// GetUserClient returns UserClient of ChaincodeClient
+func (c *ChaincodeClient) GetUserClient() *UserClient {
+	return c.userClient
+}
