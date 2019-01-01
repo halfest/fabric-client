@@ -16,6 +16,15 @@ type UserClient struct {
 	signingIdentity msp.SigningIdentity
 }
 
+// CreateUserClient is the same as  (c *FabricClient) CreateUserClient(channelID string, name string, organization string) but it does not reuse Fabric Client
+func CreateUserClient(configPath string, ordererHost string, channelID string, name string, organization string) (*UserClient, error) {
+	fabricClient, err := CreateFabricClient(configPath, ordererHost)
+	if err != nil {
+		return nil, err
+	}
+	return fabricClient.CreateUserClient(channelID, name, organization)
+}
+
 // Invoke triggers invokation of transaction
 func (c *UserClient) Invoke(chaincodeID string, functionName string, args [][]byte) ([]byte, error) {
 	resp, err := c.channelClient.Execute(channel.Request{ChaincodeID: chaincodeID, Fcn: functionName, Args: args},

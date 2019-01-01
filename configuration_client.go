@@ -29,14 +29,6 @@ type ChannelParameters struct {
 	ChannelConfigPath string
 }
 
-// CreateChannelParameters constructs ChannelParameters
-func CreateChannelParameters(channelID string, channelConfigPath string) *ChannelParameters {
-	return &ChannelParameters{
-		ChannelID:         channelID,
-		ChannelConfigPath: os.Getenv("GOPATH") + channelConfigPath,
-	}
-}
-
 // ChaincodeParameters is representation for parameters used to interact with chaincode
 type ChaincodeParameters struct {
 	ChaincodeID   string
@@ -44,6 +36,14 @@ type ChaincodeParameters struct {
 	Version       string
 	ArgsForInit   [][]byte
 	Policy        string
+}
+
+// CreateChannelParameters constructs ChannelParameters
+func CreateChannelParameters(channelID string, channelConfigPath string) *ChannelParameters {
+	return &ChannelParameters{
+		ChannelID:         channelID,
+		ChannelConfigPath: os.Getenv("GOPATH") + channelConfigPath,
+	}
 }
 
 // CreateChaincodeParameters used to construct ChaincodeParameters
@@ -55,6 +55,15 @@ func CreateChaincodeParameters(chaincodeID string, chaincodePath string, version
 		ArgsForInit:   argsForInit,
 		Policy:        policy,
 	}
+}
+
+// CreateConfigurationClient is the same as  (c *FabricClient) CreateConfigurationClient(channelID string, name string, organization string) but it does not reuse Fabric Client
+func CreateConfigurationClient(configPath string, ordererHost string, name string, organization string) (*ConfigurationClient, error) {
+	fabricClient, err := CreateFabricClient(configPath, ordererHost)
+	if err != nil {
+		return nil, err
+	}
+	return fabricClient.CreateConfigurationClient(name, organization)
 }
 
 // CreateChannelFromStructure the sames as CreateChannel but accepts ChannelParameters struct

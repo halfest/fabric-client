@@ -23,6 +23,12 @@ from fabric peer cli was used.
 
 ### Init fabric client
 ```go
+import (
+	fabclient "github.com/halfest/fabric-client"
+	"github.com/hyperledger/fabric-sdk-go/pkg/common/logging"
+)
+
+logging.SetLevel("fabclient", logging.DEBUG)
 fabricClient, err := fabclient.CreateFabricClient("config file for fabric-sdk-go", "orderer host")
 // Must version is also available
 ```
@@ -31,14 +37,10 @@ fabricClient, err := fabclient.CreateFabricClient("config file for fabric-sdk-go
 
 #### Create configuration client
 ```go
-import (
-	fabclient "github.com/halfest/fabric-client"
-	"github.com/hyperledger/fabric-sdk-go/pkg/common/logging"
-)
-
-logging.SetLevel("fabclient", logging.DEBUG)
 configurationClient, err := fabricClient.CreateConfigurationClient("userName", "orgTitle")
-// Must version is also available
+// or without reuse of fabric client
+configurationClient, err := fabclient.CreateConfigurationClient("config file for fabric-sdk-go", "orderer host", "userName", "orgTitle")
+// Must versions is also available
 ```
 
 #### Create channel
@@ -70,7 +72,9 @@ err = configurationClient.InstanciateChaincode("channelID", "chaincodeID", "chai
 #### Create user client
 ```go
 userClient, err := fabricClient.CreateUserClient("userName", "orgTitle", "channelID")
-// Must version is also available
+// or without reuse of fabric client
+userClient, err := fabclient.CreateUserClient("config file for fabric-sdk-go", "orderer host", "userName", "orgTitle", "channelID")
+// Must versions is also available
 ```
 
 #### Invoke transaction
@@ -90,7 +94,9 @@ response, err = userClient.Query("chaincodeID", "chaincodeMethod", [][]byte{[]by
 #### Create user client
 ```go
 chaincodeClient, err := fabricClient.CreateChaincodeClient("channelID", "chaincodeID", "userName", "orgTitle")
-// Must version is also available
+// or without reuse of fabric client
+chaincodeClient, err := fabclient.CreateChaincodeClient("config file for fabric-sdk-go", "orderer host", "channelID", "chaincodeID", "userName", "orgTitle")
+// Must versions is also available
 ```
 
 #### Invoke transaction

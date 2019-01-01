@@ -10,6 +10,15 @@ type ChaincodeClient struct {
 	userClient  *UserClient
 }
 
+// CreateChaincodeClient is the same as  (c *FabricClient) CreateChaincodeClient(channelID string, name string, organization string) but it does not reuse Fabric Client
+func CreateChaincodeClient(configPath string, ordererHost string, channelID string, chaincodeID string, name string, organization string) (*ChaincodeClient, error) {
+	fabricClient, err := CreateFabricClient(configPath, ordererHost)
+	if err != nil {
+		return nil, err
+	}
+	return fabricClient.CreateChaincodeClient(channelID, chaincodeID, name, organization)
+}
+
 // Invoke triggers invokation of transaction
 func (c *ChaincodeClient) Invoke(functionName string, args [][]byte) ([]byte, error) {
 	resp, err := c.userClient.Invoke(c.chaincodeID, functionName, args)
