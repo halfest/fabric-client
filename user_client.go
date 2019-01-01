@@ -9,15 +9,16 @@ import (
 )
 
 type UserClient struct {
-	Name            string
-	Organization    string
-	ChannelClient   *channel.Client
-	ChannelID       string
-	SigningIdentity msp.SigningIdentity
+	name            string
+	organization    string
+	channelClient   *channel.Client
+	channelID       string
+	signingIdentity msp.SigningIdentity
 }
 
+// Invoke triggers invokation of transaction
 func (c *UserClient) Invoke(chaincodeID string, functionName string, args [][]byte) ([]byte, error) {
-	resp, err := c.ChannelClient.Execute(channel.Request{ChaincodeID: chaincodeID, Fcn: functionName, Args: args},
+	resp, err := c.channelClient.Execute(channel.Request{ChaincodeID: chaincodeID, Fcn: functionName, Args: args},
 		channel.WithRetry(retry.DefaultChannelOpts))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to invoke chaincode %s with funactions %s and arguments %v.\n Error: %v", chaincodeID, functionName, args, err)
@@ -26,8 +27,9 @@ func (c *UserClient) Invoke(chaincodeID string, functionName string, args [][]by
 	return resp.Payload, nil
 }
 
+// Query is the same as Invoke but without sending transaction to orderer so tx does not added to blockchain history. It is used for querying data
 func (c *UserClient) Query(chaincodeID string, functionName string, args [][]byte) ([]byte, error) {
-	resp, err := c.ChannelClient.Query(channel.Request{ChaincodeID: chaincodeID, Fcn: functionName, Args: args},
+	resp, err := c.channelClient.Query(channel.Request{ChaincodeID: chaincodeID, Fcn: functionName, Args: args},
 		channel.WithRetry(retry.DefaultChannelOpts))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to query chaincode %s with funactions %s and arguments %v.\n Error: %v", chaincodeID, functionName, args, err)

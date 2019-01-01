@@ -2,7 +2,6 @@ package fabclient
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	mspclient "github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
@@ -14,38 +13,20 @@ import (
 
 var logger = logging.NewLogger("fabclient")
 
+// FabricClient contains FabricSDK and used to interact with fabric system
 type FabricClient struct {
-	SDK         *fabsdk.FabricSDK
-	OrdererHost string
-	GoPath      string
+	sdk         *fabsdk.FabricSDK
+	ordererHost string
 }
 
-type ChaincodeParameters struct {
-	ChaincodeID   string
-	ChaincodePath string
-	Version       string
-	ArgsForInit   [][]byte
-	Policy        string
-}
-
-func CreateChaincodeParameters(chaincodeID string, chaincodePath string, version string, argsForInit [][]byte, policy string) *ChaincodeParameters {
-	return &ChaincodeParameters{
-		ChaincodeID:   chaincodeID,
-		ChaincodePath: chaincodePath,
-		Version:       version,
-		ArgsForInit:   argsForInit,
-		Policy:        policy,
-	}
-}
-
+// CreateFabricClient creates new Fabric Client
 func CreateFabricClient(configPath string, ordererHost string) (*FabricClient, error) {
 	var err error
 	FabricClient := FabricClient{
-		OrdererHost: ordererHost,
-		GoPath:      os.Getenv("GOPATH"),
+		ordererHost: ordererHost,
 	}
 	cp := config.FromFile(configPath)
-	FabricClient.SDK, err = fabsdk.New(cp)
+	FabricClient.sdk, err = fabsdk.New(cp)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read fabric SDK config file: %s", err)
 	}
@@ -53,14 +34,15 @@ func CreateFabricClient(configPath string, ordererHost string) (*FabricClient, e
 	return &FabricClient, nil
 }
 
+// CreateConfigurationClient creates new Configuration Client
 func (c *FabricClient) CreateConfigurationClient(name string, organization string) (*ConfigurationClient, error) {
 	var err error
 	configurationClient := &ConfigurationClient{
-		Name:         name,
-		Organization: organization,
-		FabricClient: c,
+		name:         name,
+		organization: organization,
+		fabricClient: c,
 	}
-	err = configurationClient.initResourceMgmtClient(c.SDK)
+	err = configurationClient.initResourceMgmtClient(c.sdk)
 	if err != nil {
 		return nil, err
 	}
@@ -68,22 +50,23 @@ func (c *FabricClient) CreateConfigurationClient(name string, organization strin
 	return configurationClient, nil
 }
 
+// CreateUserClient creates new User Client
 func (c *FabricClient) CreateUserClient(channelID string, name string, organization string) (*UserClient, error) {
 	var err error
 	userClient := &UserClient{
-		Name:         name,
-		Organization: organization,
-		ChannelID:    channelID,
+		name:         name,
+		organization: organization,
+		channelID:    channelID,
 	}
 
-	channelProvider := c.SDK.ChannelContext(userClient.ChannelID, fabsdk.WithUser(userClient.Name), fabsdk.WithOrg(userClient.Organization))
+	channelProvider := c.sdk.ChannelContext(userClient.channelID, fabsdk.WithUser(userClient.name), fabsdk.WithOrg(userClient.organization))
 	clientInstance, err := channel.New(channelProvider)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create user client with channel id %s, user name %s and organization %s.\n Error: %v", userClient.ChannelID, userClient.Name, userClient.Organization, err)
+		return nil, fmt.Errorf("Failed to create user client with channel id %s, user name %s and organization %s.\n Error: %v", userClient.channelID, userClient.name, userClient.organization, err)
 	}
-	userClient.ChannelClient = clientInstance
+	userClient.channelClient = clientInstance
 
-	userClient.SigningIdentity, err = c.getUserIdentity(userClient.Name, userClient.Organization)
+	userClient.signingIdentity, err = c.getUserIdentity(userClient.name, userClient.organization)
 	if err != nil {
 		return nil, err
 	}
@@ -91,12 +74,13 @@ func (c *FabricClient) CreateUserClient(channelID string, name string, organizat
 	return userClient, nil
 }
 
+// CreateChaincodeClient creates new Chaincode Client
 func (c *FabricClient) CreateChaincodeClient(channelID string, chaincodeID string, name string, organization string) (*ChaincodeClient, error) {
 	var err error
 	chaincodeClient := &ChaincodeClient{
-		ChaincodeID: chaincodeID,
+		chaincodeID: chaincodeID,
 	}
-	chaincodeClient.UserClient, err = c.CreateUserClient(channelID, name, organization)
+	chaincodeClient.userClient, err = c.CreateUserClient(channelID, name, organization)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create user client with channel id %s, user name %s and organization %s.\n Error: %v", channelID, name, organization, err)
 	}
@@ -105,7 +89,7 @@ func (c *FabricClient) CreateChaincodeClient(channelID string, chaincodeID strin
 }
 
 func (c *FabricClient) getUserIdentity(name string, organization string) (msp.SigningIdentity, error) {
-	mspClient, err := mspclient.New(c.SDK.Context(), mspclient.WithOrg(organization))
+	mspClient, err := mspclient.New(c.sdk.Context(), mspclient.WithOrg(organization))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create msp client with organisation %s.\n Error: %v", name, err)
 	}

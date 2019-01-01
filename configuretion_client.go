@@ -15,18 +15,21 @@ import (
 	platform "github.com/hyperledger/fabric/core/chaincode/platforms/golang"
 )
 
+// ConfigurationClient
 type ConfigurationClient struct {
 	resMgmtClient *resmgmt.Client
-	Name          string
-	Organization  string
-	FabricClient  *FabricClient
+	name          string
+	organization  string
+	fabricClient  *FabricClient
 }
 
+// ChannelParameters contains data used to call functions that requires struct as argument
 type ChannelParameters struct {
 	ChannelID         string
 	ChannelConfigPath string
 }
 
+// CreateChannelParameters constructs ChannelParameters
 func CreateChannelParameters(channelID string, channelConfigPath string) *ChannelParameters {
 	return &ChannelParameters{
 		ChannelID:         channelID,
@@ -34,10 +37,57 @@ func CreateChannelParameters(channelID string, channelConfigPath string) *Channe
 	}
 }
 
+// ChaincodeParameters is representation for parameters used to interact with chaincode
+type ChaincodeParameters struct {
+	ChaincodeID   string
+	ChaincodePath string
+	Version       string
+	ArgsForInit   [][]byte
+	Policy        string
+}
+
+// CreateChaincodeParameters used to construct ChaincodeParameters
+func CreateChaincodeParameters(chaincodeID string, chaincodePath string, version string, argsForInit [][]byte, policy string) *ChaincodeParameters {
+	return &ChaincodeParameters{
+		ChaincodeID:   chaincodeID,
+		ChaincodePath: chaincodePath,
+		Version:       version,
+		ArgsForInit:   argsForInit,
+		Policy:        policy,
+	}
+}
+
+// CreateChannelFromStructure the sames as CreateChannel but accepts ChannelParameters struct
+func (c *ConfigurationClient) CreateChannelFromStructure(channelParameters *ChannelParameters) error {
+	return c.CreateChannel(channelParameters.ChannelID, channelParameters.ChannelConfigPath)
+}
+
+// CreateChannel creates channel
+func (c *ConfigurationClient) CreateChannel(channelID string, channelConfigPath string) error {
+	// logger.Debugf("Creating channel %s", channelID)
+	mspClient, err := mspclient.New(c.fabricClient.sdk.Context(), mspclient.WithOrg(c.organization))
+	if err != nil {
+		return fmt.Errorf("Failed to create msp client with organisation %s.\n Error: %s", c.organization, err)
+	}
+	userIdentity, err := mspClient.GetSigningIdentity(c.name)
+	if err != nil {
+		return fmt.Errorf("Failed to get signing identity %s while creating channel [%s].\n Error: %v", c.name, channelID, err)
+	}
+	req := resmgmt.SaveChannelRequest{ChannelID: channelID, ChannelConfigPath: channelConfigPath, SigningIdentities: []msp.SigningIdentity{userIdentity}}
+	txID, err := c.resMgmtClient.SaveChannel(req, resmgmt.WithOrdererEndpoint(c.fabricClient.ordererHost))
+	if err != nil || txID.TransactionID == "" {
+		return fmt.Errorf("Failed to save channel %s.\n Error: %s", channelID, err)
+	}
+	logger.Debugf("Channel %s created", channelID)
+	return nil
+}
+
+// InstallChaincodeFromStructure the sames as InstallChaincode but accepts ChaincodeParameters struct
 func (c *ConfigurationClient) InstallChaincodeFromStructure(chaincodeParameters *ChaincodeParameters) error {
 	return c.InstallChaincode(chaincodeParameters.ChaincodeID, chaincodeParameters.ChaincodePath, chaincodeParameters.Version)
 }
 
+// InstallChaincode installs chaincode
 func (c *ConfigurationClient) InstallChaincode(chaincodeID string, chaincodePath string, version string) error {
 	// logger.Debugf("Installing chaincode %s version %s", chaincodeID, version)
 	goPlatform := platform.Platform{}
@@ -56,10 +106,12 @@ func (c *ConfigurationClient) InstallChaincode(chaincodeID string, chaincodePath
 	return nil
 }
 
+// InstanciateChaincodeFromStructure the sames as InstanciateChaincode but accepts ChaincodeParameters struct
 func (c *ConfigurationClient) InstanciateChaincodeFromStructure(channelID string, chaincodeParameters *ChaincodeParameters) error {
 	return c.InstanciateChaincode(channelID, chaincodeParameters.ChaincodeID, chaincodeParameters.ChaincodePath, chaincodeParameters.Version, chaincodeParameters.ArgsForInit, chaincodeParameters.Policy)
 }
 
+// InstanciateChaincode instantiates chaincode
 func (c *ConfigurationClient) InstanciateChaincode(channelID string, chaincodeID string, chaincodePath string, version string, args [][]byte, policy string) error {
 	// logger.Debugf("Instantiating chaincode %s version %s", chaincodeID, version)
 	ccPolicy, err := cauthdsl.FromString(policy)
@@ -76,42 +128,22 @@ func (c *ConfigurationClient) InstanciateChaincode(channelID string, chaincodeID
 	return nil
 }
 
-func (c *ConfigurationClient) CreateChannelFromStructure(channelParameters *ChannelParameters) error {
-	return c.CreateChannel(channelParameters.ChannelID, channelParameters.ChannelConfigPath)
-}
-
-func (c *ConfigurationClient) CreateChannel(channelID string, channelConfigPath string) error {
-	// logger.Debugf("Creating channel %s", channelID)
-	mspClient, err := mspclient.New(c.FabricClient.SDK.Context(), mspclient.WithOrg(c.Organization))
-	if err != nil {
-		return fmt.Errorf("Failed to create msp client with organisation %s.\n Error: %s", c.Organization, err)
-	}
-	userIdentity, err := mspClient.GetSigningIdentity(c.Name)
-	if err != nil {
-		return fmt.Errorf("Failed to get signing identity %s while creating channel [%s].\n Error: %v", c.Name, channelID, err)
-	}
-	req := resmgmt.SaveChannelRequest{ChannelID: channelID, ChannelConfigPath: channelConfigPath, SigningIdentities: []msp.SigningIdentity{userIdentity}}
-	txID, err := c.resMgmtClient.SaveChannel(req, resmgmt.WithOrdererEndpoint(c.FabricClient.OrdererHost))
-	if err != nil || txID.TransactionID == "" {
-		return fmt.Errorf("Failed to save channel %s.\n Error: %s", channelID, err)
-	}
-	logger.Debugf("Channel %s created", channelID)
-	return nil
-}
-
+// JoinChannelFromStructure the sames as JoinChannel but accepts ChannelParameters struct
 func (c *ConfigurationClient) JoinChannelFromStructure(channelParameters *ChannelParameters) error {
 	return c.JoinChannel(channelParameters.ChannelID)
 }
 
+// JoinChannel joins channel
 func (c *ConfigurationClient) JoinChannel(channelID string) error {
 	// logger.Debugf("Joining channel %s", channelID)
-	if err := c.resMgmtClient.JoinChannel(channelID, resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithOrdererEndpoint(c.FabricClient.OrdererHost)); err != nil {
+	if err := c.resMgmtClient.JoinChannel(channelID, resmgmt.WithRetry(retry.DefaultResMgmtOpts), resmgmt.WithOrdererEndpoint(c.fabricClient.ordererHost)); err != nil {
 		return fmt.Errorf("Failed to join channel %s.\n Error: %v", channelID, err)
 	}
 	logger.Debugf("Channel %s joined", channelID)
 	return nil
 }
 
+// CreateAndJoinChannelFromStructure the sames as CreateAndJoinChannel but accepts ChannelParameters struct
 func (c *ConfigurationClient) CreateAndJoinChannelFromStructure(channelParameters *ChannelParameters) error {
 	var err error
 	err = c.CreateChannelFromStructure(channelParameters)
@@ -125,6 +157,7 @@ func (c *ConfigurationClient) CreateAndJoinChannelFromStructure(channelParameter
 	return nil
 }
 
+// CreateAndJoinChannel creates and joins channel
 func (c *ConfigurationClient) CreateAndJoinChannel(channelID string, channelConfigPath string) error {
 	var err error
 	err = c.CreateChannel(channelID, channelConfigPath)
@@ -141,10 +174,10 @@ func (c *ConfigurationClient) CreateAndJoinChannel(channelID string, channelConf
 func (c *ConfigurationClient) initResourceMgmtClient(sdk *fabsdk.FabricSDK) error {
 	// logger.Debug("Creating ressource management client")
 	// The resource management client is responsible for managing channels (create/update channel)
-	resourceManagerClientContext := c.FabricClient.SDK.Context(fabsdk.WithUser(c.Name), fabsdk.WithOrg(c.Organization))
+	resourceManagerClientContext := c.fabricClient.sdk.Context(fabsdk.WithUser(c.name), fabsdk.WithOrg(c.organization))
 	resMgmtClient, err := resmgmt.New(resourceManagerClientContext)
 	if err != nil {
-		return fmt.Errorf("Failed to create channel management client with user %s and organisation %s.\n Error: %v", c.Name, c.Organization, err)
+		return fmt.Errorf("Failed to create channel management client with user %s and organisation %s.\n Error: %v", c.name, c.organization, err)
 	}
 	c.resMgmtClient = resMgmtClient
 	logger.Debug("Ressource management client created")
