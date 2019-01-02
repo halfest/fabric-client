@@ -104,4 +104,4 @@ chaincodeClient, err := fabricClient.CreateChaincodeClient("channelID", "chainco
 chaincodeClient, err := fabclient.CreateChaincodeClient("config file for fabric-sdk-go", "orderer host", "channelID", "chaincodeID", "userName", "orgTitle")
 // Must versions is also available
 ```
-Chaincode client has the same methods as the used client but does not require `chaincodeID` parameter
+Chaincode client has the same methods as the user client but does not require `chaincodeID` parameter

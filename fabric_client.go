@@ -22,16 +22,23 @@ type FabricClient struct {
 // CreateFabricClient creates new Fabric Client
 func CreateFabricClient(configPath string, ordererHost string) (*FabricClient, error) {
 	var err error
-	FabricClient := FabricClient{
-		ordererHost: ordererHost,
-	}
 	cp := config.FromFile(configPath)
-	FabricClient.sdk, err = fabsdk.New(cp)
+	sdk, err := fabsdk.New(cp)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read fabric SDK config file: %s", err)
 	}
+	fabricClient := CreateFabricClientFromSDK(sdk, ordererHost)
+	return fabricClient, nil
+}
+
+// CreateFabricClientFromSDK creates new Fabric Client based on passed sdk
+func CreateFabricClientFromSDK(sdk *fabsdk.FabricSDK, ordererHost string) *FabricClient {
+	FabricClient := FabricClient{
+		ordererHost: ordererHost,
+		sdk:         sdk,
+	}
 	logger.Debug("fabric-client created")
-	return &FabricClient, nil
+	return &FabricClient
 }
 
 // CreateConfigurationClient creates new Configuration Client
