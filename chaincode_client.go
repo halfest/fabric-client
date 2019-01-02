@@ -2,6 +2,8 @@ package fabclient
 
 import (
 	"fmt"
+
+	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/msp"
 )
 
 // ChaincodeClient contains data to interact with chaincode on behalf of user
@@ -39,7 +41,16 @@ func (c *ChaincodeClient) Query(functionName string, args [][]byte) ([]byte, err
 	return resp, nil
 }
 
-// GetUserClient returns UserClient of ChaincodeClient
-func (c *ChaincodeClient) GetUserClient() *UserClient {
-	return c.userClient
+// QueryInt is the same as Query but converts result to integer
+func (c *ChaincodeClient) QueryInt(functionName string, args [][]byte) (int, error) {
+	resp, err := c.userClient.QueryInt(c.chaincodeID, functionName, args)
+	if err != nil {
+		return 0, err
+	}
+	return resp, nil
+}
+
+// GetSigningIdentity return SigningIdentity of user
+func (c *ChaincodeClient) GetSigningIdentity() msp.SigningIdentity {
+	return c.userClient.signingIdentity
 }

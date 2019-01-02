@@ -2,6 +2,7 @@ package fabclient
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/errors/retry"
@@ -45,6 +46,19 @@ func (c *UserClient) Query(chaincodeID string, functionName string, args [][]byt
 	}
 	logger.Debugf("Response on query chaincode: %s\n", resp.Payload)
 	return resp.Payload, nil
+}
+
+// QueryInt is the same as Query but converts result to integer
+func (c *UserClient) QueryInt(chaincodeID string, functionName string, args [][]byte) (int, error) {
+	resp, err := c.Query(chaincodeID, functionName, args)
+	if err != nil {
+		return 0, err
+	}
+	restInt, err := strconv.Atoi(string(resp))
+	if err != nil {
+		return 0, fmt.Errorf("Failed to convert restonse %v to integer.\n Error: %v", resp, err)
+	}
+	return restInt, nil
 }
 
 // GetSigningIdentity return SigningIdentity of user
