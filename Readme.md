@@ -89,6 +89,12 @@ response, err = userClient.Query("chaincodeID", "chaincodeMethod", [][]byte{[]by
 // Must version is also available
 ```
 
+#### Query Int. The same as Query but converts response to int
+```go
+response, err = userClient.QueryInt("chaincodeID", "chaincodeMethod", [][]byte{[]byte("method"), []byte("args")})
+// Must version is also available
+```
+
 ### Chaincode client
 
 #### Create user client
@@ -108,5 +114,11 @@ response, err = chaincodeClient.Invoke("chaincodeMethod", [][]byte{[]byte("metho
 #### Query transaction (transaction won't be recorded to blockchain)
 ```go
 response, err = chaincodeClient.Query("chaincodeMethod", [][]byte{[]byte("method"), []byte("args")})
+// Must version is also available
+```
+
+#### Query Int. The same as Query but converts response to int
+```go
+response, err = chaincodeClient.QueryInt("chaincodeMethod", [][]byte{[]byte("method"), []byte("args")})
 // Must version is also available
 ```
