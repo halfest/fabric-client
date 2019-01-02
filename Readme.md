@@ -97,7 +97,7 @@ response, err = userClient.QueryInt("chaincodeID", "chaincodeMethod", [][]byte{[
 
 ### Chaincode client
 
-#### Create user client
+#### Create chaincode client
 ```go
 chaincodeClient, err := fabricClient.CreateChaincodeClient("channelID", "chaincodeID", "userName", "orgTitle")
 // or without reuse of fabric client
