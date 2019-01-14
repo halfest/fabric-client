@@ -87,12 +87,12 @@ func (c *FabricClient) CreateLedgerClient(channelID string, name string, organiz
 	var err error
 	ledgerClient := &LedgerClient{}
 	channelProvider := c.sdk.ChannelContext(channelID, fabsdk.WithUser(name), fabsdk.WithOrg(organization))
-	lc, err := ledger.New(channelProvider)
+	l, err := ledger.New(channelProvider)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create ledger client with channel id %s, user name %s and organization %s.\n Error: %v", channelID, name, organization, err)
 	}
-	ledgerClient.Client = lc
-	logger.Debugf("User client for channelID: %s, user: %s and organization: %screated", channelID, name, organization)
+	ledgerClient.client = l
+	logger.Debugf("Ledger client for channelID: %s, user: %s and organization: %screated", channelID, name, organization)
 	return ledgerClient, nil
 }
 
