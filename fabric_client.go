@@ -2,8 +2,10 @@ package fabclient
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
+	"github.com/hyperledger/fabric-sdk-go/pkg/client/ledger"
 	mspclient "github.com/hyperledger/fabric-sdk-go/pkg/client/msp"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/logging"
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/msp"
@@ -79,6 +81,21 @@ func (c *FabricClient) CreateUserClient(channelID string, name string, organizat
 	}
 	logger.Debugf("User client for channelID: %s, user: %s and organization: %screated", channelID, name, organization)
 	return userClient, nil
+}
+
+// CreateLedgerClient creates new User Ledger Client
+func (c *FabricClient) CreateLedgerClient(channelID string, name string, organization string) (*LedgerClient, error) {
+	var err error
+	ledgerClient := &LedgerClient{}
+	channelProvider := c.sdk.ChannelContext(channelID, fabsdk.WithUser(name), fabsdk.WithOrg(organization))
+	log.Println("channelProvider Created")
+	lc, err := ledger.New(channelProvider)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create ledger client with channel id %s, user name %s and organization %s.\n Error: %v", channelID, name, organization, err)
+	}
+	ledgerClient.Client = lc
+	logger.Debugf("User client for channelID: %s, user: %s and organization: %screated", channelID, name, organization)
+	return ledgerClient, nil
 }
 
 // CreateChaincodeClient creates new Chaincode Client
