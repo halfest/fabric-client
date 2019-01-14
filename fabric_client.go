@@ -2,7 +2,6 @@ package fabclient
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 	"github.com/hyperledger/fabric-sdk-go/pkg/client/ledger"
@@ -88,7 +87,6 @@ func (c *FabricClient) CreateLedgerClient(channelID string, name string, organiz
 	var err error
 	ledgerClient := &LedgerClient{}
 	channelProvider := c.sdk.ChannelContext(channelID, fabsdk.WithUser(name), fabsdk.WithOrg(organization))
-	log.Println("channelProvider Created")
 	lc, err := ledger.New(channelProvider)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create ledger client with channel id %s, user name %s and organization %s.\n Error: %v", channelID, name, organization, err)
